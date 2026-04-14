@@ -65,13 +65,12 @@ export function useClusters() {
   // Track demo mode to re-fetch when it changes
   const { isDemoMode } = useDemoMode()
 
-  // Subscribe to shared cache updates
+  // Subscribe to shared cache updates.
   useEffect(() => {
-    // Subscribe to updates
     const handleUpdate = (cache: ClusterCache) => {
       setLocalState(cache)
     }
-    // Sync with any updates that happened between initial render and effect
+    // Sync with any updates that happened between initial render and effect.
     handleUpdate(clusterCache)
     clusterSubscribers.add(handleUpdate)
 
