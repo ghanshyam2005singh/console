@@ -114,9 +114,9 @@ async function fetchACMMScan(repo: string, force: boolean): Promise<ACMMScanData
   if (!res.ok) {
     throw new Error(`ACMM scan failed: ${res.status} ${res.statusText}`)
   }
-  // The Go backend and cluster deployments don't implement /api/acmm/scan —
-  // the SPA catch-all returns index.html (text/html) instead of JSON.
-  // Detect this and throw a clean error so the card falls back to demo data.
+  // Safety net: if the response isn't JSON (e.g. older builds without the Go
+  // handler, or an SPA catch-all returning index.html), throw a clean error
+  // so the card falls back to demo data instead of a JSON parse crash.
   const ct = res.headers.get('content-type') || ''
   if (!ct.includes('application/json')) {
     throw new Error('ACMM scan is not available on this deployment — showing demo data')
@@ -149,9 +149,14 @@ export function useCachedACMMScan(repo: string = DEFAULT_REPO): UseACMMScanResul
   }, [refetch])
 
   // When the Netlify Function isn't available (localhost / cluster deploy),
-  // the fetcher fails. Fall back to demo data so the cards render something
-  // useful instead of showing an empty state with a raw error.
-  const apiUnavailable = cacheResult.isFailed && cacheResult.data.detectedIds.length === 0
+  // the fetcher throws "ACMM scan is not available on this deployment".
+  // Detect this from the error string (available on the FIRST failure) rather
+  // than isFailed (which requires 3 consecutive failures to flip). Once
+  // detected, substitute demo data and suppress all error/failure indicators
+  // so the cards render with the standard Demo badge instead of "Refresh failed".
+  const apiUnavailable =
+    (cacheResult.error?.includes('not available') ?? false) ||
+    (cacheResult.isFailed && cacheResult.data.detectedIds.length === 0)
   const effectiveData = apiUnavailable ? demoScan(repo) : cacheResult.data
 
   const detectedIds = new Set(effectiveData.detectedIds ?? [])
@@ -166,8 +171,8 @@ export function useCachedACMMScan(repo: string = DEFAULT_REPO): UseACMMScanResul
     detectedIds,
     level,
     recommendations,
-    isLoading: cacheResult.isLoading,
-    isRefreshing: cacheResult.isRefreshing,
+    isLoading: apiUnavailable ? false : cacheResult.isLoading,
+    isRefreshing: apiUnavailable ? false : cacheResult.isRefreshing,
     isDemoData,
     error: apiUnavailable ? null : cacheResult.error,
     isFailed: apiUnavailable ? false : cacheResult.isFailed,
