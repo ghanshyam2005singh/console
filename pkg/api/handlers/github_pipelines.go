@@ -77,6 +77,10 @@ func ghpGetRepos() []string {
 	for _, s := range strings.Split(env, ",") {
 		s = strings.TrimSpace(s)
 		if s != "" {
+			if !ghpValidRepoPattern.MatchString(s) {
+				slog.Warn("[GitHubPipelines] Invalid repo slug in PIPELINE_REPOS, skipping", "repo", s)
+				continue
+			}
 			repos = append(repos, s)
 		}
 	}
