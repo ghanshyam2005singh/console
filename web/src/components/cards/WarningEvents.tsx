@@ -129,7 +129,7 @@ export function WarningEvents() {
         <span className="text-xs text-muted-foreground">
           {totalItems} warning{totalItems !== 1 ? 's' : ''}
         </span>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <CardControlsRow
             clusterFilter={{
               availableClusters,
@@ -147,6 +147,7 @@ export function WarningEvents() {
               onSortChange: (v) => sorting.setSortBy(v as SortByOption),
               sortDirection: sorting.sortDirection,
               onSortDirectionChange: sorting.setSortDirection }}
+            className="!mb-0"
           />
           <RefreshButton
             isRefreshing={isRefreshing}
@@ -204,17 +205,18 @@ export function WarningEvents() {
                     )}
                   </div>
                   <p className="text-xs text-muted-foreground truncate mt-0.5">{event.message}</p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="text-xs text-muted-foreground">{event.namespace}</span>
+                  <div className="flex flex-wrap items-center gap-2 mt-1 min-w-0">
+                    <span className="text-xs text-muted-foreground truncate">{event.namespace}</span>
                     {event.cluster && (
-                      <ClusterBadge cluster={event.cluster.split('/').pop() || event.cluster} size="sm" />
+                      <ClusterBadge cluster={event.cluster.split('/').pop() || event.cluster} size="sm" className="shrink min-w-0" />
                     )}
                     <CardAIActions
                       resource={{ kind: 'Event', name: event.object, namespace: event.namespace, cluster: event.cluster, status: 'Warning' }}
                       issues={[{ name: event.reason, message: event.message }]}
                       showRepair={false}
+                      className="flex-shrink-0"
                     />
-                    <span className="text-xs text-muted-foreground ml-auto">{getTimeAgo(event.lastSeen)}</span>
+                    <span className="text-xs text-muted-foreground ml-auto whitespace-nowrap flex-shrink-0">{getTimeAgo(event.lastSeen)}</span>
                   </div>
                 </div>
               </div>
