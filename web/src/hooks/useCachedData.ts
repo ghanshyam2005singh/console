@@ -273,14 +273,15 @@ export { useCachedKubevela } from './useCachedKubevela'
 // Standalone fetchers for prefetch (no React hooks, plain async)
 // ============================================================================
 
-import { isBackendUnavailable, authFetch } from '../lib/api'
+import { isBackendUnavailable } from '../lib/api'
 import { clusterCacheRef } from './mcp/shared'
 import { isAgentUnavailable } from './useLocalAgent'
-import { LOCAL_AGENT_HTTP_URL } from '../lib/constants'
 import { FETCH_DEFAULT_TIMEOUT_MS } from '../lib/constants/network'
 import {
   fetchAPI,
+  fetchBackendAPI,
   fetchFromAllClusters,
+  fetchFromAllClustersViaBackend,
   getToken,
   MAX_PREFETCH_PODS,
 } from '../lib/cache/fetcherUtils'
@@ -292,8 +293,6 @@ import {
 } from './useCachedCoreWorkloads'
 import { fetchProwJobs } from './useCachedProw'
 import { fetchLLMdServers, fetchLLMdModels } from './useCachedLLMd'
-import { validateResponse } from '../lib/schemas/validate'
-import { SecurityIssuesResponseSchema } from '../lib/schemas'
 import type {
   PodInfo,
   PodIssue,
@@ -319,7 +318,8 @@ export const coreFetchers = {
     }
     const token = getToken()
     if (token && token !== 'demo-token' && !isBackendUnavailable()) {
-      const issues = await fetchFromAllClusters<PodIssue>('pod-issues', 'issues', {})
+      // pod-issues is a backend-only endpoint (#9996)
+      const issues = await fetchFromAllClustersViaBackend<PodIssue>('pod-issues', 'issues', {})
       return issues.sort((a, b) => (b.restarts || 0) - (a.restarts || 0))
     }
     return []
@@ -344,7 +344,8 @@ export const coreFetchers = {
     }
     const token = getToken()
     if (token && token !== 'demo-token' && !isBackendUnavailable()) {
-      const data = await fetchAPI<{ issues: DeploymentIssue[] }>('deployment-issues', {})
+      // deployment-issues is a backend-only endpoint (#9996)
+      const data = await fetchBackendAPI<{ issues: DeploymentIssue[] }>('deployment-issues', {})
       return data.issues || []
     }
     return []
@@ -372,19 +373,11 @@ export const coreFetchers = {
     }
     const token = getToken()
     if (token && token !== 'demo-token' && !isBackendUnavailable()) {
-      const response = await authFetch(`${LOCAL_AGENT_HTTP_URL}/security-issues`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        signal: AbortSignal.timeout(FETCH_DEFAULT_TIMEOUT_MS)
-      })
-      if (response.ok) {
-        const rawSecurity = await response.json().catch(() => null)
-        const data = validateResponse(SecurityIssuesResponseSchema, rawSecurity, '/security-issues (fallback)')
-        if (data && data.issues && data.issues.length > 0) return data.issues
-      }
+      // security-issues is a backend-only endpoint (#9996)
+      try {
+        const data = await fetchBackendAPI<{ issues: SecurityIssue[] }>('security-issues', {})
+        if (data?.issues && data.issues.length > 0) return data.issues
+      } catch { /* fall through */ }
     }
     return []
   },
@@ -392,7 +385,8 @@ export const coreFetchers = {
     return fetchFromAllClusters<NodeInfo>('nodes', 'nodes', {})
   },
   warningEvents: async (): Promise<ClusterEvent[]> => {
-    return fetchFromAllClusters<ClusterEvent>('events/warnings', 'events', { limit: 50 })
+    // events/warnings is a backend-only endpoint (#9996)
+    return fetchFromAllClustersViaBackend<ClusterEvent>('events/warnings', 'events', { limit: 50 })
   },
   workloads: async (): Promise<Workload[]> => {
     const agentData = await fetchWorkloadsFromAgent()
