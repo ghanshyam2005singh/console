@@ -144,7 +144,7 @@ function setupMockExec(options: {
 
   const _callIndex = 0
   mockExec.mockImplementation((args: string[]) => {
-    callIndex++
+    _callIndex++
     if (clusterError) return Promise.resolve(errorResponse('Unable to connect'))
 
     // Phase 1 parallel calls (first 7)

@@ -206,7 +206,7 @@ export function useCrossplaneManagedResources(cluster?: string) {
 
           setTimeout(() => {
             setIsRefreshing(false)
-            notifyListeners(false, false, true)
+            if (!cluster) notifyListeners(false, false, true)
           }, MIN_REFRESH_INDICATOR_MS)
 
           return
