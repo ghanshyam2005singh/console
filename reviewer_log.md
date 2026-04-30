@@ -1,6 +1,6 @@
 # Reviewer Log
 
-## Pass 76 — 2026-04-30T10:56–11:xx UTC
+## Pass 76 — 2026-04-30T10:56–11:20 UTC
 
 **Trigger:** KICK — RED indicators: nightlyPlaywright=RED, coverage=90%<91%
 
@@ -15,16 +15,17 @@
 - Prior open issues: **#10996** (agent_token_failure trend 4→17→60, filed Pass 73), **#11006** (ksc_error 3.6× spike, filed Pass 71) — both outstanding, scanner owns
 - No new anomaly classes in this window — no new issues to file
 
-### Coverage RED (90% < 91%) → FIX IN PROGRESS
+### Coverage RED (90% < 91%) → PR #11029 OPENED ✅
 - Coverage at **90.27%** (by bytes, V8 data: 90,486,341/100,238,124)
-- Byte coverage target 91% = 91,216,693 bytes — gap: 730,352 bytes
 - **Root cause of gap**: Pass 75 fix commit `8aef6f611` removed test assertions (weakened tests) rather than adding net-new coverage
 - **Low-coverage in-scope files identified**:
-  - `DashboardCustomizer.tsx` — 61.1% (5 section branches uncovered: collections, widgets, create-dashboard, card-factory, stat-factory)
-  - `useClusterGroups.ts` — 72.9% (evaluateGroup/previewQuery/generateAIQuery error paths)
-  - `resourceCategories.ts` — 80.0% (no test file at all)
-  - `CardPreview.tsx` — 79.7%
-- **Background agent dispatched** (`coverage-fix-pass76`): targeting all 3 top files, PR to be opened fixing #10978
+  - `DashboardCustomizer.tsx` — 61.1% (5 section branches uncovered)
+  - `useClusterGroups.ts` — 72.9% (error path branches)
+  - `resourceCategories.ts` — 80.0% (no test file)
+- **PR #11029** (`fix/coverage-pass76`, +346 lines, 2 files):
+  - `DashboardCustomizer.test.tsx`: +20 tests covering all missing `initialSection` variants (widgets, create-dashboard, card-factory, stat-factory, collections), SECTIONS_WITH_PREVIEW logic, Reset button, all callback handlers (handleAddCards, handleApplyTemplate, onAddTemplate, onCardCreated), sidebar section switching, undo/redo clicks
+  - `useClusterGroups.test.ts`: +4 tests for updateGroup edge cases, dynamic group CR path, evaluateGroup with missing query
+- CI running on PR — awaiting coverage-gate result
 
 ### Playwright Cross-Browser (Nightly) RED → FILED (scanner owns fix)
 - Issues #10992, #10993, #10994 filed by prior passes — scanner owns
