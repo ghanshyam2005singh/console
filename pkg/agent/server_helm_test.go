@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os/exec"
+	"strings"
 	"testing"
 )
 
@@ -20,19 +21,11 @@ func TestValidateHelmK8sName(t *testing.T) {
 		{"valid simple", "my-cluster", "cluster", false},
 		{"starts with dash", "-cluster", "cluster", true},
 		{"invalid char", "cluster@1", "cluster", true},
-		{"too long", string(make([]byte, 254)), "cluster", true},
+		{"too long", strings.Repeat("a", 254), "cluster", true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			val := tt.val
-			if tt.name == "too long" {
-				b := make([]byte, 254)
-				for i := range b {
-					b[i] = 'a'
-				}
-				val = string(b)
-			}
-			err := validateHelmK8sName(val, tt.field)
+			err := validateHelmK8sName(tt.val, tt.field)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("validateHelmK8sName() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -231,6 +224,5 @@ func TestServer_HandleHelmUpgrade(t *testing.T) {
 	server.handleHelmUpgrade(w, req)
 	if w.Code != http.StatusBadRequest {
 		t.Errorf("Expected 400, got %d", w.Code)
-
 	}
 }

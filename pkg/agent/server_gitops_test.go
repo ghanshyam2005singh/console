@@ -179,10 +179,7 @@ func TestGitopsParseApplyOutput(t *testing.T) {
 		})
 	}
 }
-<<<<<<< HEAD
-=======
 
->>>>>>> 075c8adbc (fix: resolve syntax errors from merge conflict)
 func TestGitopsHandlers(t *testing.T) {
 	// 1. Setup mock execCommand
 	defer func() { execCommand = exec.Command; execCommandContext = exec.CommandContext }()
@@ -312,6 +309,5 @@ service/myapp unchanged
 	}
 	if applied[0] != "pod/myapp created" {
 		t.Errorf("unexpected applied[0]: %s", applied[0])
-
 	}
 }
