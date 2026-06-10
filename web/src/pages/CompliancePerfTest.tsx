@@ -102,12 +102,15 @@ export function CompliancePerfTest() {
       cardId: `compliance-${batch}-${idx}-${cardType}` }))
   })()
 
-  window.__COMPLIANCE_MANIFEST__ = {
-    allCardTypes,
-    totalCards: allCardTypes.length,
-    batch,
-    batchSize,
-    selected }
+  useEffect(() => {
+    window.__COMPLIANCE_MANIFEST__ = {
+      allCardTypes,
+      totalCards: allCardTypes.length,
+      batch,
+      batchSize,
+      selected }
+    return () => { delete window.__COMPLIANCE_MANIFEST__ }
+  }, [allCardTypes, batch, batchSize, selected])
 
   return (
     <ACMMProvider>
